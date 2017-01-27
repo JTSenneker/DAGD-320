@@ -1,0 +1,18 @@
+ChatApp Protocol v1.1
+
+All messages are terminated with a newline character ("\n")
+All message parts aresplit with a tab character ("\t")
+
+PACKETS FROM SERVER
+===================
+CHAT\t(username)\t(message)\n
+ANNOUNCE\t(message)\n
+NAMEOK\n
+NAMEBAD\t(message)\n
+PM\t(username)\t(message)\n
+
+PACKETS FROM CLIENT
+===================
+CHAT\t(message)\n
+NAME\t(name)\n
+PM\t(recipient)\t(message)\n

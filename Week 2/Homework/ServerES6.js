@@ -5,6 +5,7 @@ class MyServer{
 		this.clients = [];
 		this.options = {
 			port:1234,
+			host:127.0.0.1,
 		};
 	}
 
