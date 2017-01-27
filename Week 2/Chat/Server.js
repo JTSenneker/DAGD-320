@@ -7,9 +7,12 @@ const listenOptions = {
 let clients = [];
 
 const broadcast = function(msg){
-	clients.map((client)=>{
+	/*clients.map((client)=>{
 		client.sendMsg(msg);
-	});
+	});*/
+	for(var client of clients){
+		client.sendMsg(msg);
+	}
 };
 
 net.createServer((socket) => {
