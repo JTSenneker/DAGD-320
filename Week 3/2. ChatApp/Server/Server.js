@@ -45,6 +45,19 @@ class Server{
 			client.sock.write(msg);
 		});
 	}
+	privateBroadcast(username,msg){
+		for(var client of clients){
+			if(client.username == username){
+				client.sock.write(msg);
+			}
+		}
+	}
+	targetUser(msg){
+		for(var client of clients){
+			if(msg.includes(client.username))return client.username;
+			else return "";
+		}
+	}
 
 	isNameOkay(name){
 		if(name.length < 4) return "Name too short";
@@ -100,18 +113,21 @@ class Client{
 					const newName = parts[1];
 					const nameResult = this.server.isNameOkay(newName);
 					if(nameResult == ""){
-						this.sock.write(ChatProtocol.buildNameOkay());
 						if(this.username ==""){
 							this.sock.write(ChatProtocol.buildAnnounce(newName + " joined the room!"));
 						}else{
 							this.sock.write(ChatProtocol.buildAnnounce(this.username + " changed their name to " + newName))
 						}
+						this.username = newName;
+						this.sock.write(ChatProtocol.buildNameOkay());
 					}else{
 						//BAD
 						this.sock.write(ChatProtocol.buildNameBad(nameResult));
 					}
 					break;
 				case "PM":
+					console.log("PM sent");
+					
 				break;
 			default:
 				console.log("Received an unknown packet from "+this.sock.remoteAddress);
