@@ -8,11 +8,16 @@
 			//buffer = parts.pop();
 			switch(parts[0]){
 				case "CHAT":
-					
 					for(var i = 1;i<parts.length;i++){
 						textMain.text += parts[i] + "\n";
 					}
 					textMain.text += "\n";
+					break;
+				case "PM":
+					textMain.text += "PM from " + parts[i] + ":\n";
+					for(var i = 2;i<parts.length;i++){
+						textMain.text += parts[i];
+					}
 					break;
 			}
 		}		function handleKeyChat(e:KeyboardEvent):void {			if(e.keyCode == 13) sendMsg();		}		function handleClickChat(e:MouseEvent):void {			sendMsg();		}		function sendMsg():void {
