@@ -1,0 +1,78 @@
+UGCP v1.0
+Joe Senneker
+/////////////////////////
+
+=========================
+SERVER PACKETS
+=========================
+
+JOIN (response)
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (JOIN)
+	1	4	UINT8	PLAYER ID
+	1	5	UINT8	ERROR CODE
+
+	PLAYER ID CODES
+	------------------------------
+	0	JOIN REJECTED
+	1	PLAYER 1
+	2	PLAYER 2
+	3	SPECTATOR
+
+	ERROR CODES
+	------------------------------
+	1	USERNAME TOO SHORT
+	2	USERNAME TOO LONG
+	3	USERNAME CONTAINS INVALID CHARACTERS
+	4	USERNAME ALREADY TAKEN
+	5	THE GAME IS FULL
+
+WAIT
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (WAIT)
+
+UPDT
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (UPDT)
+	1	4	UINT8	WHOSE TURN	(1 / 2)
+	1	5	UINT8	WINNER (1 / 2)
+	1	6	UINT8	PLAYER 1 HAND COUNT
+	1	7	UINT8	PLAYER 2 HAND COUNT
+	1	8	UINT8	TOP CARD NUMBER (1-10)
+	1	9	UINT8	TOP CARD COLOR
+
+	COLOR CODES
+	-------------------------------
+	1	RED
+	2	GREEN
+	3	BLUE
+	4	YELLOW
+
+======================
+CLIENT PACKETS
+======================
+
+JOIN
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (JOIN)
+	1	4	UINT8	JOIN TYPE (1: PLAY 2:SPECTATE)
+	1	5	UINT8	USERNAME LENGTH
+	?	6	ASCII	REQUESTED USERNAME
+
+MOVE
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (MOVE)
+	1	4	UINT8	CARD NUMBER
+	1	5	UINT8	CARD COLOR
+
+CHAT
+	L	O	TYPE	DESC
+	----------------------------------
+	4	0	ASCII	PACKET TYPE (CHAT)
+	?	4	ASCII	USERNAME
+	?	?	ASCII	CHAT MESSAGE
