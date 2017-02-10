@@ -10,7 +10,28 @@ const UCGP ={
 };
 
 const Game = {
-
+	winner:0,
+	topCardNumber:0,
+	topCardColor:0,
+	player1HandCount:7,
+	player2HandCount:7,
+	playersTurn:1,
+	/*
+	updates the number of cards in a player's hand
+	*/
+	updatePlayerHand:function(n,client){
+		if(client.playerid == 1){
+			this.player1HandCount += n;
+		}else this.player2HandCount +=n;
+	},
+	placeCard:function(cardNumber, cardColor){
+		if(this.playersTurn != client.playerid)return false;
+		if(this.winner !=0)return false;
+		this.topCardNumber = cardNumber;
+		this.topCardColor = cardColor;
+		this.playersTurn = ((this.playersTurn == 1)?2:1);
+		if(this.player1HandCount)
+	}
 };
 
 class Server{
@@ -154,5 +175,73 @@ class Client{
 		}
 		return true;
 	}
+
+	/*
+	This method is used to return the first 4 bytes of the packet as a string
+	which should be JOIN, MOVE, or CHAT
+	*/
+	getNextPacketType(){
+		if(this.buffer.length < 4)return null;
+		return this.buffer.slice(0,4).toString();
+	}
+
+	/*
+	splits the buffer at the index passed into the function.
+	*/
+	splitBufferAt(n){
+		this.buffer=this.buffer.slice(n,this.buffer.length);
+	}
+
+	readPacketJoin(){
+		//parse the packet
+		if(this.buffer.length < 6) return;//packet is not complete. Not enough data to stream
+		const joinRequestType = this.buffer.readUInt8(4);
+		const usernameLength = this.buffer.readUInt8(5)
+		const packetLength = 6 + usernameLength;
+		if(this.buffer.length < packetLength)return;//not enought data to stream. Packet is not complete
+		const username = this.buffer.slice(6,6+usernameLength).toString();
+		this.splitBufferAt(packetLength);//remove this from the packet
+
+		//determine if player can join
+		let errorCode = this.server.isNameOkay(username);
+		this.playerid = (errcode == 0 ? 3:0);//if there's no errors default to spectate
+
+		if(joinRequestType == 1 && errorCode == 0){
+			if(this.server.player1 == null){
+				this.playerid = 1;
+				this.server.player1 = this;
+			}else if(this.server.player2 == null){
+				this.playerid = 2;
+				this.server.palyer2 = this;
+			}else{
+				this.playerid = 0;
+				errorCode = UCGP.GAME_FULL;
+			}
+		}
+		this.sock.write(UCGP.buildJoinResponse(this.playerid,errorCode));
+
+		this.server.broadcastStatus();
+	}
+
+	readPacketMove(){
+		if(this.buffer.length<7) return//not enough dtat in the stream; packet incomplete
+		const playType = this.buffer.readUInt8(4);
+		const cardNumber = this.buffer.readUInt8(5);
+		const cardColor = this.buffer.readUInt8(6);
+		this.splitBufferAt(6);
+		if(playType == 1){
+			Game.updatePlayerHand(1,this);
+		}
+		if(playType == 2){
+			if(this.server.isReady()) Game.placeCard(cardNumber,cardColor);
+			Game.updatePlayerHand(-1,this);
+		}
+		this.server.broadcastStatus();
+	}
+	readPacketChat(){
+		//TODO: Impliment
+	}
 	
 }
+
+new Server();
