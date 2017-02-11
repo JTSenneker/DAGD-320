@@ -30,7 +30,8 @@ const Game = {
 		this.topCardNumber = cardNumber;
 		this.topCardColor = cardColor;
 		this.playersTurn = ((this.playersTurn == 1)?2:1);
-		if(this.player1HandCount)
+		if(this.player1HandCount == 0)winner = 1;
+		else if(this.player2HandCount == 0)winner = 2;
 	}
 };
 
