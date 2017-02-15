@@ -1,4 +1,4 @@
-package{
+﻿package{
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
 	import flash.events.Event;
@@ -70,6 +70,39 @@ package{
 			}
 
 			return false;
+		}
+		private function getNextPacketType():String{
+			if(buffer.length<4)return "";
+			return buffer.slice(0,4).toString();
+		}
+		
+		//////////////// BUILDING PACKETS /////////////////
+		
+		//use ONLY this method for sending.
+		//this will ensure that everything you send will use the LegitBuffer class
+		public function write(buffer:LegitBuffer):void{
+			writeBytes(buffer.byteArray);
+			flush();
+		}
+		
+		public function sendJoinRequest(playMode:Boolean, username:String):void{
+			var buffer:LegitBuffer = new LegitBuffer();
+			buffer.write("JOIN");
+			buffer.writeUInt8(playMode ? 1:2,4);
+			buffer.writeUInt8(username.length,5);
+			buffer.write(username,6);
+			
+			write(buffer);
+		}
+		
+		public function sendMove(cardNumber:int,cardColor:int,playType:int){
+			var buffer:LegitBuffer = new LegitBuffer();
+			buffer.write("MOVE");
+			buffer.writeUInt8(playType);
+			buffer.writeUInt8(cardNumber);
+			buffer.writeUInt8(cardColor);
+			
+			write(buffer);
 		}
 	}
 }
