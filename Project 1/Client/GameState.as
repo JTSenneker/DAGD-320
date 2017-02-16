@@ -5,7 +5,8 @@
 		public var winner:int = 0;
 		public var player1HandCount:int = 0;
 		public var player2HandCount:int = 0;
-		public var topCardNumber
+		public var topCardNumber:int = 0;
+		public var topCardColor:int = 0;
 		public function GameState(stream:LegitBuffer) {
 			
 			playersTurn = stream.readUInt8(4);
