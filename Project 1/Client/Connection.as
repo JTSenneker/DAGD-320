@@ -12,7 +12,7 @@
 		public function Connection(){
 			addEventListener(Event.CONNECT, handleConnect);
 			addEventListener(IOErrorEvent.IO_ERROR, handleError);
-			addEventListener(event.CLOSE, handleClose);
+			addEventListener(Event.CLOSE, handleClose);
 			addEventListener(ProgressEvent.SOCKET_DATA, handleData);
 		}
 

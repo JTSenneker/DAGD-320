@@ -1,10 +1,9 @@
 ﻿package  {
 	import flash.events.MouseEvent;
 	import flash.display.MovieClip;
-	import fl.ik.ConnectionData;
 	
 	public class Game extends MovieClip {
-		public static var socket:Connection = new ConnectionData();
+		public static var socket:Connection = new Connection();
 		private static var main:Game;
 		
 		private var scene:GameScene;

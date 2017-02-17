@@ -1,4 +1,4 @@
-package{
+﻿package{
 
 	import flash.display.MovieClip;
 	import flash.events.KeyboardEvent;
@@ -17,7 +17,7 @@ package{
 			connect();
 		}
 		function connect():void{
-			Game.socket.connect(txt1.text,int(text2.text));
+			Game.socket.connect(txt1.text,int(txt2.text));
 		}
 		public override function dispose():void{
 			txt1.removeEventListener(KeyboardEvent.KEY_DOWN, handleKey);

@@ -102,7 +102,7 @@
 			topCard.y = cardSpace.y;
 		}
 		private function updatePrompts(){
-			if(state.playersTurn == playerid)propmt.text = "Okay. NOW you can go.";
+			if(state.playersTurn == playerid)prompt.text = "Okay. NOW you can go.";
 			else prompt.text = "Hold your damn horses!";
 			
 			if(state.winner != 0){

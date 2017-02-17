@@ -13,7 +13,7 @@
 			Game.socket.sendJoinRequest(true,txt1.text);
 		}
 		function handleClickSpectate(e:MouseEvent):void{
-			Game.socket.sendJoinRequest(false,txt.text);
+			Game.socket.sendJoinRequest(false,txt1.text);
 		}
 		public override function dispose():void{
 			bttn1.removeEventListener(MouseEvent.CLICK, handleClickPlay);

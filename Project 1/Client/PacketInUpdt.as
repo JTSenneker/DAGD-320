@@ -1,4 +1,4 @@
-package{
+﻿package{
 
 	public class PacketInUpdt extends PacketIn{
 		static public function tryReading(buffer:LegitBuffer):PacketInUpdt{
@@ -8,7 +8,7 @@ package{
 
 		public var state:GameState;
 
-		public function PacketInUpdt(buffer:Legitbuffer){
+		public function PacketInUpdt(buffer:LegitBuffer){
 			_type = PacketType.UPDT;
 
 			state = new GameState(buffer);
