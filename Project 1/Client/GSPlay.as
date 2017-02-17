@@ -4,7 +4,7 @@
 	import flash.events.MouseEvent;
 
 	public class GSPlay extends GameScene{
-		static public var playerid:int =0;
+		static public var playerid:int = 0;
 		private var state:GameState;
 		
 		const playerHand:Vector.<Card> = new Vector.<Card>([]);
@@ -23,7 +23,7 @@
 					addChild(card);
 				}
 				addListeners();
-				updateState(state);
+				
 			}
 			
 			cardNumber = Math.floor(Math.random()*10);
@@ -38,41 +38,47 @@
 				playerHand[i].y = height-100;
 
 				}
+				updateState(state);
+				updatePrompts();
 
 			}
 		private function drawCard(e:MouseEvent):void{
-			var newCard:Card = new Card(Math.floor(Math.random()*10),Math.floor(Math.random()*4)+1);
-			newCard.addEventListener(MouseEvent.CLICK,placeCard);
-			playerHand.push(newCard);
-			addChild(newCard);
-			for(var i:int =0; i < playerHand.length; i++){
-				playerHand[i].x = i*(width/playerHand.length);
-				playerHand[i].y = height-100;
-				}
-			Game.socket.sendMove(topCard.cardNumber,topCard.cardColor,1);
+			if(playerid == state.playersTurn){
+				var newCard:Card = new Card(Math.floor(Math.random()*10),Math.floor(Math.random()*4)+1);
+				newCard.addEventListener(MouseEvent.CLICK,placeCard);
+				playerHand.push(newCard);
+				addChild(newCard);
+				for(var i:int =0; i < playerHand.length; i++){
+					playerHand[i].x = i*(width/playerHand.length);
+					playerHand[i].y = height-100;
+					}
+				Game.socket.sendMove(topCard.cardNumber,topCard.cardColor,1);
+				updatePrompts();
+			}
 		}
 		private function placeCard(e:MouseEvent):void{
-			for(var i = playerHand.length-1; i>=0; i--){
-				var card:Card = playerHand[i]
-				trace(playerHand[i].select);
-				if(playerHand[i].select){
-					trace(playerHand[i].cardNumber);
-					
-					if(playerHand[i].cardNumber == topCard.cardNumber || playerHand[i].cardColor == topCard.cardColor){
-						removeChild(topCard);
-						topCard = null;
-						topCard = playerHand[i];
-						removeChild(playerHand[i]);
-						playerHand[i].dispose();
-						playerHand[i].removeEventListener(MouseEvent.CLICK,placeCard);
-						playerHand.splice(i,1);
-						topCard.x = cardSpace.x;
-						topCard.y = cardSpace.y;
-						addChild(topCard);
+			if(playerid == state.playersTurn){
+				for(var i = playerHand.length-1; i>=0; i--){
+					var card:Card = playerHand[i]
+					trace(playerHand[i].select);
+					if(playerHand[i].select){
+						trace(playerHand[i].cardNumber);
+						
+						if(playerHand[i].cardNumber == topCard.cardNumber || playerHand[i].cardColor == topCard.cardColor){
+							topCard.cardNumber = playerHand[i].cardNumber;
+							topCard.cardColor = playerHand[i].cardColor;
+							topCard.updateCardInfo();
+							removeChild(playerHand[i]);
+							playerHand[i].dispose();
+							playerHand[i].removeEventListener(MouseEvent.CLICK,placeCard);
+							playerHand.splice(i,1);
+							Game.socket.sendMove(topCard.cardNumber,topCard.cardColor,2);
+							updatePrompts();
+							
+						}
 					}
 				}
 			}
-			Game.socket.sendMove(topCard.cardNumber,topCard.cardColor,2);
 		}
 		private function addListeners():void{
 			for each(var card:Card in playerHand){
@@ -92,14 +98,12 @@
 			}
 		}
 		private function updateState(state:GameState){
+			trace("you got a god damn update");
 			this.state = state;
-			cardNumber = state.topCardNumber;
-			cardColor = state.topCardColor;
-			removeChild(topCard);
-			topCard = null;
-			topCard = new Card(cardNumber,cardColor);
-			topCard.x = cardSpace.x;
-			topCard.y = cardSpace.y;
+			topCard.cardColor = state.topCardColor;
+			topCard.cardNumber = state.topCardNumber;
+			topCard.updateCardInfo();
+			updatePrompts();
 		}
 		private function updatePrompts(){
 			if(state.playersTurn == playerid)prompt.text = "Okay. NOW you can go.";
@@ -113,7 +117,7 @@
 					else prompt.text = "Sucks to suck.";
 				}
 			}
-			handCounts.text = "Player 1 has " +state.player1HandCount+" cards left./n"+"Player 2 has " +state.player2HandCount+" cards left.";
+			handCounts.text = "Player 1 has " +state.player1HandCount+" cards left.\n"+"Player 2 has " +state.player2HandCount+" cards left.";
 		}
 	}
 	

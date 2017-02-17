@@ -4,6 +4,7 @@
 	import flash.events.MouseEvent;
 
 	public class GSLobby extends GameScene{
+		
 
 		public function GSLobby() {
 			bttn1.addEventListener(MouseEvent.CLICK, handleClickPlay);

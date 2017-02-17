@@ -20,7 +20,13 @@ const UCGP ={
 		packet.writeUInt8(Game.player2HandCount,7);
 		packet.writeUInt8(Game.topCardNumber,8);
 		packet.writeUInt8(Game.topCardColor,9);
+		console.log("sent packet: ");
+		console.log("player "+Game.playersTurn+" turn");
+		console.log("player 1 has "+Game.player1HandCount+" cards left");
+		console.log("player 2 has "+Game.player2HandCount+" cards left");
+		console.log("the top card is a "+Game.topCardNumber);
 		return packet;
+
 	},
 	buildWait:()=>{
 		return Buffer.from("WAIT");
@@ -254,6 +260,7 @@ class Client{
 	}
 
 	readPacketMove(){
+		console.log("move received");
 		if(this.buffer.length<7) return//not enough dtat in the stream; packet incomplete
 		console.log("recieved move");
 		const playType = this.buffer.readUInt8(4);

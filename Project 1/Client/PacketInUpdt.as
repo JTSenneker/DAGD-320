@@ -1,16 +1,17 @@
-﻿package{
+﻿package  {
+	
+	public class PacketInUpdt extends PacketIn {
 
-	public class PacketInUpdt extends PacketIn{
-		static public function tryReading(buffer:LegitBuffer):PacketInUpdt{
-			if(buffer.length < 10) return null;//not enough data in the stream; packet incomplete
+		static public function tryReading(buffer:LegitBuffer):PacketInUpdt {
+			if(buffer.length < 10) return null; // not enough data in the stream; packet incomplete
 			return new PacketInUpdt(buffer);
 		}
-
+		
 		public var state:GameState;
-
-		public function PacketInUpdt(buffer:LegitBuffer){
+		
+		public function PacketInUpdt(buffer:LegitBuffer) {
 			_type = PacketType.UPDT;
-
+	
 			state = new GameState(buffer);
 			buffer.trim(10);
 		}

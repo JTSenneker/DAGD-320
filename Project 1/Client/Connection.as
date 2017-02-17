@@ -98,10 +98,10 @@
 		public function sendMove(cardNumber:int,cardColor:int,playType:int){
 			var buffer:LegitBuffer = new LegitBuffer();
 			buffer.write("MOVE");
-			buffer.writeUInt8(playType);
-			buffer.writeUInt8(cardNumber);
-			buffer.writeUInt8(cardColor);
-			
+			buffer.writeUInt8(playType,4);
+			buffer.writeUInt8(cardNumber,5);
+			buffer.writeUInt8(cardColor,6);
+			trace("Move Sent");
 			write(buffer);
 		}
 	}
