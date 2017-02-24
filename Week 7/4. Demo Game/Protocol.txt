@@ -1,0 +1,48 @@
+BCGP v1.0
+
+Packets from Server
+===================
+
+JOIN RESPONSE
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("JRSP")
+	4	1	uInt8	Is allowed in (1: yes, 0: no)
+
+GAMESTATE
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("GMST")
+	(multiple circles: )
+	?	2	uInt16	x-position of circle #n
+	?	2	uInt16	y-position of circle #n
+	?	1	uInt8	whether circle #n is flexing (1: yes, 0: no)
+KICK
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("KICK")
+
+Packets from Client
+===================
+
+JOIN REQUEST
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("JREQ")
+INPUT
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("INPT")
+	4	2	uInt16	x-position of Mouse
+	6	2	uInt16	y-position of Mouse
+	8	1	uInt8	mouse-button (1: down, 0: up)
+DISCONNECT
+
+	O	L	TYPE	DESC
+	=========================
+	0	4	ascii	Packet Type ("DISC")
