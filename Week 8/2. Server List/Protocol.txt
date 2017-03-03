@@ -1,0 +1,27 @@
+//Demo Server Protocol v1.0
+
+== Packets from Sever==
+
+(BRPR)Broadcast Presence
+	This packet is sent over port 1234. All clients should listen
+	for this packet on that port.
+
+	O	L	TYPE	DESC
+	==================================
+	0	4	ascii	Packet Type (BRPR)
+	4	?	ascii	Server Name
+
+(JRES)Join Response
+	O	L	TYPE	DESC
+	==================================
+	0	4	ascii	Packet Type (JRES)
+	4	1	uInt8	Response (1: accepted, 0:Rejected)
+	5	?	ascii	Welcome Message
+
+== Packets from Client==
+
+(JREQ) Join Request
+	O	L	TYPE	DESC
+	==================================
+	0	4	ascii	Packet Type (JREQ)
+	
