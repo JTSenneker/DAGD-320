@@ -22,8 +22,8 @@ class ReplicableGameObject {
 }
 
 
-const SPEED_MOVE = 100; //pixels per second
-const SPEED_TURN = 90;	//degrees per second
+const SPEED_MOVE = 300; //pixels per second
+const BULLET_SPEED = 500;
 const DEG2RAD = Math.PI / 180;
 
 exports.Tank = class Tank extends ReplicableGameObject{
@@ -45,26 +45,46 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		let axisV = 0;
 		if(this.player.inputW===true) axisV++;
 		if(this.player.inputS===true) axisV--;
-
+		if(this.player.inputSpace===true){
+			this.player.game.addBullet(this.x,this.y);
+			this.player.keepAlive();
+		}
 		if(axisH!=0){
-			this.angle+=axisH*SPEED_TURN*dt;
-			if(this.angle > 360)this.angle -= 360;
-			if(this.angle < 0)this.angle += 360;
+			this.x+=axisH*SPEED_MOVE*dt;
+			this.player.keepAlive();
 		}
 		if(axisV!=0){
-			const rads = this.angle * DEG2RAD;
-			this.x += axisV * SPEED_MOVE * Math.cos(rads) *dt;
-			this.y += axisV * SPEED_MOVE * Math.sin(rads) *dt;
-
+			this.y -= axisV * SPEED_MOVE *dt;
+			this.player.keepAlive();
 		}
 	}
 
 	getPayload(){
-		const buff = Buffer.alloc(6);
+		const buff = Buffer.alloc(4);
 		buff.writeInt16BE(this.x,0);
 		buff.writeInt16BE(this.y,2);
-		buff.writeInt16BE(this.angle*10,4);
 
+		return buff;
+	}
+}
+
+exports.Bullet = class Bullet extends ReplicableGameObject{
+	constructor(networkID,x,y){
+		super(networkID,"BLLT");
+		this.x=x;
+		this.y=y;
+		this.dead = false;
+		console.log("pew");
+	}
+	update(dt){
+		this.y -= BULLET_SPEED*dt;
+	}
+
+	getPayload(){
+		const buff = Buffer.alloc(4);
+		buff.writeInt16BE(this.x,0);
+		buff.writeInt16BE(this.y,2);
+		
 		return buff;
 	}
 }

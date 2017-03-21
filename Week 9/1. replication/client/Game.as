@@ -48,7 +48,7 @@
 			var classID:String = chunk.slice(6,10).toString();
 			
 			var obj:ReplicableGameObject = networkGameObjects[networkID];
-			
+			trace(classID);
 			switch(action){
 				case 0:
 				case 1:
@@ -67,6 +67,7 @@
 				case 2:
 					if(obj){
 						//delete the object
+						removeChild(obj);
 					}
 					break;
 			}//end switch

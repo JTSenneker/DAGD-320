@@ -1,5 +1,6 @@
 const Player = new require('./Player.js').Player;
 const Tank = new require('./GameObjects.js').Tank;
+const Bullet = new require('./GameObjects.js').Bullet;
 
 exports.GameSession = class GameSession {
 
@@ -7,9 +8,11 @@ exports.GameSession = class GameSession {
 		this.server = server;
 		this.players = [];
 		this.tanks = [];
+		this.bullets = [];
 		this.deltaTime = 0;
 		this.nextNetworkID = 0;
 		this.timePrev = this.timeNow = Date.now();
+
 
 		console.log("new game session beginning...");
 		this.play();
@@ -20,6 +23,10 @@ exports.GameSession = class GameSession {
 		
 		this.players.push(player);
 		this.tanks.push(tank);
+	}
+	addBullet(x,y){
+		const bullet = new Bullet(this.getNextNetworkID(),x,y);
+		this.bullets.push(bullet);
 	}
 	play(){
 		this.gameLoop();
@@ -35,15 +42,21 @@ exports.GameSession = class GameSession {
 
 
 		this.updateTanks();
+		this.updateBullets();
 
 		this.broadcast(this.getWorldStatePacket())
 
 		this.tickPlayers();
 
-		this.timer = setTimeout(() => this.gameLoop(), 17);
+		this.timer = setTimeout(() => this.gameLoop(), 10);
 	}
 	updateTanks(){
 		this.tanks.map((tank)=>tank.update(this.deltaTime));
+	}
+	updateBullets(){
+		for(let i = this.bullets.length - 1;i>=0;i--){
+			this.bullets[i].update(this.deltaTime);
+		}
 	}
 	tickPlayers(){
 		for(let i = this.players.length - 1; i >= 0; i--){
@@ -94,6 +107,9 @@ exports.GameSession = class GameSession {
 		this.tanks.map((tank)=>{
 			buffs.push(tank.getState());
 		});
+		for(let i = this.bullets.length - 1;i>=0;i--){
+			buffs.push(this.bullets[i].getState());
+		}
 
 		return Buffer.concat(buffs);
 

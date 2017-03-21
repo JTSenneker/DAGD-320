@@ -11,6 +11,7 @@
 		}
 		static public function registerClasses():void {
 			creationMap[Tank.classId] = Tank.createInstance;
+			creationMap[Bullet.classID] = Bullet.createInstance;
 		}
 	}
 }

@@ -56,6 +56,11 @@
 					case A:
 					case S:
 					case D:
+					case UP:
+					case DOWN:
+					case LEFT:
+					case RIGHT:
+					case SPACE:
 						tellTheServer = true;
 						break;
 				}	
