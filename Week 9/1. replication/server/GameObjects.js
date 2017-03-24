@@ -31,13 +31,21 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		super(networkID,"TANK");
 
 		this.player = player;
+		this.y = 460;
 
-		this.x = Math.random()*150+200;
-		this.y = Math.random()*200+200;
-		this.angle = 0;
+		//AABB
+		this.top = 0;
+		this.bottom = 0;
+		this.left = 0;
+		this.right =0;
+		//AABB
+
+		this.charge = 0;
+		this.maxCharge = 100;
 	}
 
 	update(dt){
+		this.updateAABB();
 		let axisH = 0;
 		if(this.player.inputD===true) axisH++;
 		if(this.player.inputA===true) axisH--;
@@ -46,8 +54,13 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		if(this.player.inputW===true) axisV++;
 		if(this.player.inputS===true) axisV--;
 		if(this.player.inputSpace===true){
-			this.player.game.addBullet(this.x,this.y);
+			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y);
+			this.charge += 34 *dt;
+			if(this.charge > this.maxCharge)this.charge = this.maxCharge;
 			this.player.keepAlive();
+		}
+		if(this.player.inputSpace===false && this.player.inputSpacePrev===true){
+			this.player.game.addBullet(this.x,this.y);
 		}
 		if(axisH!=0){
 			this.x+=axisH*SPEED_MOVE*dt;
@@ -57,6 +70,7 @@ exports.Tank = class Tank extends ReplicableGameObject{
 			this.y -= axisV * SPEED_MOVE *dt;
 			this.player.keepAlive();
 		}
+		this.player.inputSpacePrev = this.player.inputSpace;
 	}
 
 	getPayload(){
@@ -65,6 +79,14 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		buff.writeInt16BE(this.y,2);
 
 		return buff;
+	}
+
+	//updates values passed into the AABB collision check
+	updateAABB(){
+		this.top = this.y-10;
+		this.bottom = this.y+10;
+		this.left = this.x-7.5;
+		this.right = this.x+7.5;
 	}
 }
 
@@ -73,18 +95,82 @@ exports.Bullet = class Bullet extends ReplicableGameObject{
 		super(networkID,"BLLT");
 		this.x=x;
 		this.y=y;
+
+		//AABB
+		this.top = 0;
+		this.bottom = 0;
+		this.left = 0;
+		this.right =0;
+		//AABB
+
 		this.dead = false;
-		console.log("pew");
 	}
 	update(dt){
+		this.updateAABB();
 		this.y -= BULLET_SPEED*dt;
+		if(this.y < -50)this.dead = true;
 	}
 
 	getPayload(){
-		const buff = Buffer.alloc(4);
+		const buff = Buffer.alloc(5);
 		buff.writeInt16BE(this.x,0);
 		buff.writeInt16BE(this.y,2);
+		buff.writeUInt8(this.dead?1:0,4);
 		
 		return buff;
+	}
+	//updates values passed into the AABB collision check
+	updateAABB(){
+		this.top = this.y-10;
+		this.bottom = this.y+10;
+		this.left = this.x-7.5;
+		this.right = this.x+7.5;
+	}
+}
+
+exports.Enemy = class Enemy extends ReplicableGameObject{
+	constructor(networkID){
+		super(networkID,"ENMY");
+		this.x=Math.random()*800;
+		this.y=-100;
+		
+		//AABB
+		this.top = 0;
+		this.bottom = 0;
+		this.left = 0;
+		this.right =0;
+		//AABB
+
+		this.dead = false;
+		this.speed = 100;
+	}
+	update(dt){
+		this.updateAABB();
+		this.y += this.speed*dt;
+		if(this.y > 400)this.dead = true;
+	}
+	getPayload(){
+		const buff = Buffer.alloc(5);
+
+		buff.writeInt16BE(this.x,0);
+		buff.writeInt16BE(this.y,2);
+		buff.writeUInt8(this.dead?1:0,4);
+		
+		return buff;
+	}
+	//updates values passed into the AABB collision check
+	updateAABB(){
+		this.top = this.y-10;
+		this.bottom = this.y+10;
+		this.left = this.x-7.5;
+		this.right = this.x+7.5;
+	}
+
+	checkCollide(other){
+		if(this.top>other.bottom)return false;
+		if(this.bottom <other.top)return false;
+		if(this.left > other.right)return false;
+		if(this.right < other.left)return false;
+		return true;
 	}
 }

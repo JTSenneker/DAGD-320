@@ -10,13 +10,15 @@ exports.Player = class Player {
 		this.rinfo = rinfo;
 		this.game = game;
 		this.username = "";
+		this.playerID = 0;
 
 		this.inputW = false;
 		this.inputA = false;
 		this.inputS = false;
 		this.inputD = false;
 		this.inputSpace = false;
-		this.keepAlive();
+		this.inputSpacePrev = false;
+		//this.keepAlive();
 
 		console.log("New player just joined!");
 	}
@@ -31,6 +33,7 @@ exports.Player = class Player {
 		this.inputS =(bitfield & KEY_S)>0;
 		this.inputD =(bitfield & KEY_D)>0;
 		this.inputSpace = (bitfield & KEY_SPACE)>0;
+
 	}
 	isTimedOut(){
 		return (this.game.timeNow>this.connectionTimeout);
