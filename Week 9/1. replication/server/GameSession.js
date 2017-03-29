@@ -36,8 +36,8 @@ exports.GameSession = class GameSession {
 		this.enemies.push(enemy);
 	}
 
-	addBullet(x,y,xSpeed,ySpeed){
-		const bullet = new Bullet(this.getNextNetworkID(),x,y,xSpeed,ySpeed);
+	addBullet(x,y,xSpeed,ySpeed,player){
+		const bullet = new Bullet(this.getNextNetworkID(),x,y,xSpeed,ySpeed,player);
 		this.bullets.push(bullet);
 	}
 	play(){
@@ -89,12 +89,20 @@ exports.GameSession = class GameSession {
 			
 		}
 	}//END ENEMY UPDATE FUNCTION
+
+	//UPDATE BULLETS FUNCTION
 	updateBullets(){
 		for(let i = this.bullets.length - 1;i>=0;i--){
 			this.bullets[i].update(this.deltaTime);
+			for(let j = this.players.length-1;j>=0;j--){
+				if(this.players[j] == this.bullets[i].player) continue;
+				if(this.bullets[i].checkCollide(this.players[j])){
+					console.log("I hit player "+j);
+				}	
+			}
 			
 		}
-	}
+	}//END UPDATE BULLETS
 	tickPlayers(){
 		for(let i = this.players.length - 1; i >= 0; i--){
 			if(this.players[i].isTimedOut()) {

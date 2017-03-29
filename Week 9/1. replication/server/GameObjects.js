@@ -63,13 +63,13 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		if(this.player.inputW===true) axisV++;
 		if(this.player.inputS===true) axisV--;
 		if(this.player.inputSpace===true){
-			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed);
+			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed,this.player);
 			this.charge += 34 *dt;
 			if(this.charge > this.maxCharge)this.charge = this.maxCharge;
 			this.player.keepAlive();
 		}
 		if(this.player.inputSpace===false && this.player.inputSpacePrev===true){
-			this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed);
+			this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed,this.player);
 		}
 		if(axisH!=0){
 			this.rotation += axisH*dt*ROTSPEED;
@@ -111,8 +111,9 @@ exports.Tank = class Tank extends ReplicableGameObject{
 }
 
 exports.Bullet = class Bullet extends ReplicableGameObject{
-	constructor(networkID,x,y,xSpeed,ySpeed){
+	constructor(networkID,x,y,xSpeed,ySpeed,player){
 		super(networkID,"BLLT");
+		this.player=player;
 		this.x=x;
 		this.y=y;
 
@@ -147,7 +148,13 @@ exports.Bullet = class Bullet extends ReplicableGameObject{
 		this.bottom = this.y+2;
 		this.left = this.x-2;
 		this.right = this.x+2;
-		console.log(this.top);
+	}
+	checkCollide(other){
+		if(this.top>other.bottom)return false;
+		if(this.bottom <other.top)return false;
+		if(this.left >other.right)return false;
+		if(this.right < other.left)return false;
+		return true;
 	}
 }
 
