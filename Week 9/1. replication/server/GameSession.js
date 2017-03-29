@@ -36,8 +36,8 @@ exports.GameSession = class GameSession {
 		this.enemies.push(enemy);
 	}
 
-	addBullet(x,y){
-		const bullet = new Bullet(this.getNextNetworkID(),x,y);
+	addBullet(x,y,xSpeed,ySpeed){
+		const bullet = new Bullet(this.getNextNetworkID(),x,y,xSpeed,ySpeed);
 		this.bullets.push(bullet);
 	}
 	play(){
@@ -81,24 +81,18 @@ exports.GameSession = class GameSession {
 				if(this.enemies[i].checkCollide(this.bullets[j])){
 					this.enemies[i].dead = true;
 					this.bullets[j].dead = true;
+					console.log("ouch");
 				}
 			}
 			//End collision detection
 
-			//removing enemies
-			if(this.enemies[i].dead===true){
-				
-				this.enemies.splice(i,1);
-			}
+			
 		}
 	}//END ENEMY UPDATE FUNCTION
 	updateBullets(){
 		for(let i = this.bullets.length - 1;i>=0;i--){
 			this.bullets[i].update(this.deltaTime);
-			if(this.bullets[i].dead===true){
-				
-				this.bullets.splice(i,1);
-			}
+			
 		}
 	}
 	tickPlayers(){
@@ -152,9 +146,17 @@ exports.GameSession = class GameSession {
 		});
 		for(let i = this.bullets.length - 1;i>=0;i--){
 			buffs.push(this.bullets[i].getState());
+			if(this.bullets[i].dead===true){
+				
+				this.bullets.splice(i,1);
+			}
 		}
 		for(let i = this.enemies.length - 1;i>=0;i--){
 			buffs.push(this.enemies[i].getState());
+			if(this.enemies[i].dead===true){
+				
+				this.enemies.splice(i,1);
+			}
 		}
 
 		return Buffer.concat(buffs);

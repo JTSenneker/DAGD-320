@@ -11,6 +11,8 @@
 		public override function replicate(buff:LegitBuffer):void{
 			x = buff.readUInt16(10);
 			y = buff.readUInt16(12);
+			rotation = buff.readUInt16(14);
+			trace(rotation);
 		}
 	}
 	

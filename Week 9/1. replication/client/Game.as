@@ -67,7 +67,7 @@
 				case 2:
 					if(obj){
 						//delete the object
-						removeChild(obj);
+						if(contains(obj))removeChild(obj);
 					}
 					break;
 			}//end switch

@@ -2,11 +2,13 @@ class ReplicableGameObject {
 	constructor(networkID, classID){
 		this.networkID = networkID;
 		this.classID = classID;
+		this.dead = false;
 	}
 	getState(){
 		const buff = Buffer.concat([Buffer.alloc(10), this.getPayload()]);
 
 		buff.writeUInt8(buff.length);
+		buff.writeUInt8(this.dead?2:1,1);
 		buff.writeUInt32BE(this.networkID, 2);
 		buff.write(this.classID, 6);
 		//console.log(buff);
@@ -21,7 +23,7 @@ class ReplicableGameObject {
 	}
 }
 
-
+const ROTSPEED = 100;
 const SPEED_MOVE = 300; //pixels per second
 const BULLET_SPEED = 500;
 const DEG2RAD = Math.PI / 180;
@@ -32,6 +34,10 @@ exports.Tank = class Tank extends ReplicableGameObject{
 
 		this.player = player;
 		this.y = 460;
+		this.rotation =0;
+
+		this.xSpeed;
+		this.ySpeed;
 
 		//AABB
 		this.top = 0;
@@ -42,6 +48,9 @@ exports.Tank = class Tank extends ReplicableGameObject{
 
 		this.charge = 0;
 		this.maxCharge = 100;
+		this.speed =0;
+
+
 	}
 
 	update(dt){
@@ -54,29 +63,40 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		if(this.player.inputW===true) axisV++;
 		if(this.player.inputS===true) axisV--;
 		if(this.player.inputSpace===true){
-			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y);
+			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed);
 			this.charge += 34 *dt;
 			if(this.charge > this.maxCharge)this.charge = this.maxCharge;
 			this.player.keepAlive();
 		}
 		if(this.player.inputSpace===false && this.player.inputSpacePrev===true){
-			this.player.game.addBullet(this.x,this.y);
+			this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed);
 		}
 		if(axisH!=0){
-			this.x+=axisH*SPEED_MOVE*dt;
+			this.rotation += axisH*dt*ROTSPEED;
+			if(this.rotation>360)this.rotation -=360;
+			if(this.rotation<360)this.rotation +=360;
 			this.player.keepAlive();
 		}
+
 		if(axisV!=0){
-			this.y -= axisV * SPEED_MOVE *dt;
+			this.speed+=axisV*10;
+			if(this.speed > SPEED_MOVE)this.speed = SPEED_MOVE;
+			if(this.speed < -SPEED_MOVE)this.speed = -SPEED_MOVE;
 			this.player.keepAlive();
-		}
+		}else this.speed*=.95;
+
+		this.ySpeed = Math.sin(this.rotation*DEG2RAD);
+		this.xSpeed = Math.cos(this.rotation*DEG2RAD);
+		this.x+=this.xSpeed* this.speed *dt;
+		this.y+=this.ySpeed* this.speed *dt;
 		this.player.inputSpacePrev = this.player.inputSpace;
 	}
 
 	getPayload(){
-		const buff = Buffer.alloc(4);
+		const buff = Buffer.alloc(6);
 		buff.writeInt16BE(this.x,0);
 		buff.writeInt16BE(this.y,2);
+		buff.writeInt16BE(this.rotation,4);
 
 		return buff;
 	}
@@ -91,11 +111,13 @@ exports.Tank = class Tank extends ReplicableGameObject{
 }
 
 exports.Bullet = class Bullet extends ReplicableGameObject{
-	constructor(networkID,x,y){
+	constructor(networkID,x,y,xSpeed,ySpeed){
 		super(networkID,"BLLT");
 		this.x=x;
 		this.y=y;
 
+		this.xSpeed=xSpeed;
+		this.ySpeed=ySpeed;
 		//AABB
 		this.top = 0;
 		this.bottom = 0;
@@ -103,28 +125,29 @@ exports.Bullet = class Bullet extends ReplicableGameObject{
 		this.right =0;
 		//AABB
 
-		this.dead = false;
 	}
 	update(dt){
 		this.updateAABB();
-		this.y -= BULLET_SPEED*dt;
-		if(this.y < -50)this.dead = true;
+		this.y += this.ySpeed*BULLET_SPEED*dt;
+		this.x += this.xSpeed*BULLET_SPEED*dt;
+		if(this.y < -50||this.y >550||this.x>850||this.x<-50)this.dead = true;
 	}
 
 	getPayload(){
-		const buff = Buffer.alloc(5);
+		const buff = Buffer.alloc(4);
 		buff.writeInt16BE(this.x,0);
 		buff.writeInt16BE(this.y,2);
-		buff.writeUInt8(this.dead?1:0,4);
+		
 		
 		return buff;
 	}
 	//updates values passed into the AABB collision check
 	updateAABB(){
-		this.top = this.y-10;
-		this.bottom = this.y+10;
-		this.left = this.x-7.5;
-		this.right = this.x+7.5;
+		this.top = this.y-2;
+		this.bottom = this.y+2;
+		this.left = this.x-2;
+		this.right = this.x+2;
+		console.log(this.top);
 	}
 }
 
@@ -141,7 +164,6 @@ exports.Enemy = class Enemy extends ReplicableGameObject{
 		this.right =0;
 		//AABB
 
-		this.dead = false;
 		this.speed = 100;
 	}
 	update(dt){
@@ -150,11 +172,11 @@ exports.Enemy = class Enemy extends ReplicableGameObject{
 		if(this.y > 400)this.dead = true;
 	}
 	getPayload(){
-		const buff = Buffer.alloc(5);
+		const buff = Buffer.alloc(4);
 
 		buff.writeInt16BE(this.x,0);
 		buff.writeInt16BE(this.y,2);
-		buff.writeUInt8(this.dead?1:0,4);
+		
 		
 		return buff;
 	}
@@ -169,7 +191,7 @@ exports.Enemy = class Enemy extends ReplicableGameObject{
 	checkCollide(other){
 		if(this.top>other.bottom)return false;
 		if(this.bottom <other.top)return false;
-		if(this.left > other.right)return false;
+		if(this.left >other.right)return false;
 		if(this.right < other.left)return false;
 		return true;
 	}
