@@ -8,7 +8,7 @@
 		static private var localPort: int = 4321;
 		
 		static private var serverPort: int = 1234;
-		static private var serverAddr: String = "127.0.0.1";
+		static private var serverAddr: String = "192.168.86.34";
 		
 		static private var sock:DatagramSocket = new DatagramSocket();
 		

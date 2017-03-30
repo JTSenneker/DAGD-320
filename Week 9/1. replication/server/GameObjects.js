@@ -64,7 +64,7 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		if(this.player.inputS===true) axisV--;
 		if(this.player.inputSpace===true){
 			if(this.player.inputSpacePrev===false)this.player.game.addBullet(this.x,this.y,this.xSpeed,this.ySpeed,this.player);
-			this.charge += 34 *dt;
+			this.charge += 100 *dt;
 			if(this.charge > this.maxCharge)this.charge = this.maxCharge;
 			this.player.keepAlive();
 		}
@@ -157,7 +157,48 @@ exports.Bullet = class Bullet extends ReplicableGameObject{
 		return true;
 	}
 }
-
+exports.Pickup = class Pickup extends ReplicableGameObject{
+	constructor(networkID,x,y){
+		super(networkID,"PKUP");
+		this.x=x + Math.random()*100-50;
+		this.y=y + Math.random()*100-50;
+		
+		//AABB
+		this.top = 0;
+		this.bottom = 0;
+		this.left = 0;
+		this.right =0;
+		//AABB
+		this.updateAABB();
+		this.lifeTime = 5;//time in seconds before it is removed
+	}
+	update(dt){
+		this.lifeTime-=dt;
+		if(this.lifeTime <=0)this.dead = true;
+		
+	}
+	getPayload(){
+		const buff = Buffer.alloc(4);
+		buff.writeInt16BE(this.x,0);
+		buff.writeInt16BE(this.y,2);
+		
+		
+		return buff;
+	}
+	updateAABB(){
+		this.top = this.y-12.5;
+		this.bottom = this.y+12.5;
+		this.left = this.x-12.5;
+		this.right = this.x+12.5;
+	}
+	checkCollide(other){
+		if(this.top>other.bottom)return false;
+		if(this.bottom <other.top)return false;
+		if(this.left >other.right)return false;
+		if(this.right < other.left)return false;
+		return true;
+	}
+}
 exports.Enemy = class Enemy extends ReplicableGameObject{
 	constructor(networkID){
 		super(networkID,"ENMY");

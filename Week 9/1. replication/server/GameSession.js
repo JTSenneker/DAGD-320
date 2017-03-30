@@ -2,6 +2,7 @@ const Player = new require('./Player.js').Player;
 const Tank = new require('./GameObjects.js').Tank;
 const Bullet = new require('./GameObjects.js').Bullet;
 const Enemy = new require('./GameObjects.js').Enemy;
+const Pickup = new require('./GameObjects.js').Pickup
 
 exports.GameSession = class GameSession {
 
@@ -11,6 +12,7 @@ exports.GameSession = class GameSession {
 		this.tanks = [];
 		this.bullets = [];
 		this.enemies = [];
+		this.pickups = [];
 		this.deltaTime = 0;
 		this.nextNetworkID = 0;
 		this.timePrev = this.timeNow = Date.now();
@@ -20,6 +22,9 @@ exports.GameSession = class GameSession {
 		console.log("new game session beginning...");
 		this.play();
 	}
+
+	//adds a player to the game and gives said player a Tank
+	//also pushes player and tank to the players and tanks array respectively
 	addPlayer(rinfo){
 		const player = new Player(rinfo, this);
 		
@@ -31,22 +36,40 @@ exports.GameSession = class GameSession {
 		this.tanks.push(tank);
 	}
 
+	//Adds an enemy to the game
+	//Also adds enemy to enemies array
 	addEnemy(){
 		const enemy = new Enemy(this.getNextNetworkID());
 		this.enemies.push(enemy);
 	}
 
+	//Adds bullets to the bullets array
 	addBullet(x,y,xSpeed,ySpeed,player){
 		const bullet = new Bullet(this.getNextNetworkID(),x,y,xSpeed,ySpeed,player);
 		this.bullets.push(bullet);
 	}
+
+	//Adds pickups to the pickups array
+	addPickups(x,y){
+
+		for(let i = (Math.random()*2)+5;i>=0;i--){
+			const pickup = new Pickup(this.getNextNetworkID(),x,y);
+			this.pickups.push(pickup);
+		}
+	}
+
+	//Starts the game loop
 	play(){
 		this.gameLoop();
 	}
+
+	//Stops the game loop
 	stop(){
 		if(this.timer) clearTimeout(this.timer);
 		this.timer = null;
 	}
+
+	//The game objects' update functions go here
 	gameLoop(){
 		this.timeNow = Date.now();
 		this.deltaTime = (this.timeNow - this.timePrev)/1000;
@@ -61,6 +84,7 @@ exports.GameSession = class GameSession {
 		this.updateTanks();
 		this.updateBullets();
 		this.updateEnemies();
+		this.updatePickups();
 
 		this.broadcast(this.getWorldStatePacket());
 
@@ -68,6 +92,8 @@ exports.GameSession = class GameSession {
 
 		this.timer = setTimeout(() => this.gameLoop(), 10);
 	}
+
+	//updates the tank objects
 	updateTanks(){
 		this.tanks.map((tank)=>tank.update(this.deltaTime));
 	}
@@ -81,6 +107,7 @@ exports.GameSession = class GameSession {
 				if(this.enemies[i].checkCollide(this.bullets[j])){
 					this.enemies[i].dead = true;
 					this.bullets[j].dead = true;
+					this.addPickups(this.enemies[i].x,this.enemies[i].y);
 					console.log("ouch");
 				}
 			}
@@ -94,15 +121,28 @@ exports.GameSession = class GameSession {
 	updateBullets(){
 		for(let i = this.bullets.length - 1;i>=0;i--){
 			this.bullets[i].update(this.deltaTime);
-			for(let j = this.players.length-1;j>=0;j--){
-				if(this.players[j] == this.bullets[i].player) continue;
-				if(this.bullets[i].checkCollide(this.players[j])){
+			for(let j = this.tanks.length-1;j>=0;j--){
+				if(this.tanks[j].player == this.bullets[i].player) continue;
+				if(this.bullets[i].checkCollide(this.tanks[j])){
 					console.log("I hit player "+j);
 				}	
 			}
 			
 		}
 	}//END UPDATE BULLETS
+	
+	//UPDATE PICKUPS FUNCTION
+	updatePickups(){
+		for(let i = this.pickups.length-1;i>=0;i--){
+			this.pickups[i].update(this.deltaTime);
+			for(let j = this.tanks.length-1;j>=0;j--){
+				if(this.pickups[i].checkCollide(this.tanks[j])){
+					this.pickups[i].dead = true;
+				}
+			}
+		}
+	}//END UPDATE PICKUPS
+
 	tickPlayers(){
 		for(let i = this.players.length - 1; i >= 0; i--){
 			if(this.players[i].isTimedOut()) {
@@ -162,8 +202,14 @@ exports.GameSession = class GameSession {
 		for(let i = this.enemies.length - 1;i>=0;i--){
 			buffs.push(this.enemies[i].getState());
 			if(this.enemies[i].dead===true){
-				
 				this.enemies.splice(i,1);
+			}
+		}
+		for(let i = this.pickups.length - 1;i>=0;i--){
+			buffs.push(this.pickups[i].getState());
+			if(this.pickups[i].dead===true){
+				
+				this.pickups.splice(i,1);
 			}
 		}
 

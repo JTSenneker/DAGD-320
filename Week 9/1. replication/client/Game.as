@@ -48,7 +48,6 @@
 			var classID:String = chunk.slice(6,10).toString();
 			
 			var obj:ReplicableGameObject = networkGameObjects[networkID];
-			trace(classID);
 			switch(action){
 				case 0:
 				case 1:
