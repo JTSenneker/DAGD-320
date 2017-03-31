@@ -3,9 +3,11 @@
 	
 	public class PacketFactory {
 
-		static public function Join():ByteArray{
+		static public function Join(username:String):ByteArray{
 			var buff:LegitBuffer = new LegitBuffer();
 			buff.write("JNRQ");
+			buff.writeUInt8(username.length,4);
+			buff.write(username,5);
 			return buff.byteArray;
 		}
 		

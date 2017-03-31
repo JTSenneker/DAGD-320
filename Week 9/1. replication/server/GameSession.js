@@ -25,9 +25,9 @@ exports.GameSession = class GameSession {
 
 	//adds a player to the game and gives said player a Tank
 	//also pushes player and tank to the players and tanks array respectively
-	addPlayer(rinfo){
+	addPlayer(rinfo,username){
 		const player = new Player(rinfo, this);
-		
+		player.username=username;
 		
 		this.players.push(player);
 		
@@ -111,6 +111,15 @@ exports.GameSession = class GameSession {
 					console.log("ouch");
 				}
 			}
+			for(let j = this.tanks.length -1;j>=0;j--){
+				if(this.enemies[i].checkCollide(this.tanks[j])){
+					this.makeAnnouncement(this.tanks[j].player.username + " just bit it.")
+					this.tanks[j].dead = true;
+					this.enemies[i].dead=true;
+					
+
+				}
+			}
 			//End collision detection
 
 			
@@ -124,7 +133,12 @@ exports.GameSession = class GameSession {
 			for(let j = this.tanks.length-1;j>=0;j--){
 				if(this.tanks[j].player == this.bullets[i].player) continue;
 				if(this.bullets[i].checkCollide(this.tanks[j])){
-					console.log("I hit player "+j);
+					this.tanks[j].health-=10;
+					this.sendHUDUpdate(this.tanks[j].player,this.tanks[j].health);
+					if(this.tanks[j].health <=0){
+						this.makeAnnouncement(this.bullets[i].player.username +" straight up killed "+ this.tanks[j].player.username);
+					}
+					console.log("I hit player "+this.tanks[j].player.username);
 				}	
 			}
 			
@@ -137,6 +151,7 @@ exports.GameSession = class GameSession {
 			this.pickups[i].update(this.deltaTime);
 			for(let j = this.tanks.length-1;j>=0;j--){
 				if(this.pickups[i].checkCollide(this.tanks[j])){
+					this.tanks[j].health++;
 					this.pickups[i].dead = true;
 				}
 			}
@@ -164,12 +179,13 @@ exports.GameSession = class GameSession {
 
 		// TODO: remove disconnecting player's tank
 		for(let i = this.tanks.length - 1; i >=0; i--){
-			if(this.tanks[i].player == player) this.tanks.splice(i,1);
+			if(this.tanks[i].player == player) this.tanks.dead=true;
 		}
 
 		console.log("player " + player.username + " disconnected");
 
 		// TODO: broadcast delta packet (DELETE this object)
+		this.server.kickPlayer(player.rinfo);
 	}
 	broadcast(packet){
 		this.players.map((player) => {
@@ -189,9 +205,12 @@ exports.GameSession = class GameSession {
 	getWorldStatePacket(){
 		const buffs = [new Buffer("REPL")];
 
-		this.tanks.map((tank)=>{
-			buffs.push(tank.getState());
-		});
+		for(let i = this.tanks.length -1;i>=0;i--){
+			buffs.push(this.tanks[i].getState());
+			if(this.tanks[i].dead===true){
+				this.tanks.splice(i,1);
+			}
+		}
 		for(let i = this.bullets.length - 1;i>=0;i--){
 			buffs.push(this.bullets[i].getState());
 			if(this.bullets[i].dead===true){
@@ -215,5 +234,19 @@ exports.GameSession = class GameSession {
 
 		return Buffer.concat(buffs);
 
+	}
+
+	makeAnnouncement(message){
+		const buff = new Buffer("ANCE"+message);
+		this.broadcast(buff);
+	}
+
+	sendHUDUpdate(player,health){
+		const buff = Buffer.alloc(5);
+		console.log(health);
+		buff.write("HUDT")
+		buff.writeUInt8(health,4);
+
+		this.server.sock.send(buff,0,buff.length,player.rinfo.port,player.rinfo.address);
 	}
 }

@@ -49,6 +49,8 @@ exports.Tank = class Tank extends ReplicableGameObject{
 		this.charge = 0;
 		this.maxCharge = 100;
 		this.speed =0;
+		this.health = 100;
+		this.maxHealth = 100;
 
 
 	}
@@ -85,10 +87,20 @@ exports.Tank = class Tank extends ReplicableGameObject{
 			this.player.keepAlive();
 		}else this.speed*=.95;
 
+		if(this.health <=0)this.dead = true;
+		if(this.health >=this.maxHealth)this.health=this.maxHealth;
+
+
 		this.ySpeed = Math.sin(this.rotation*DEG2RAD);
 		this.xSpeed = Math.cos(this.rotation*DEG2RAD);
 		this.x+=this.xSpeed* this.speed *dt;
 		this.y+=this.ySpeed* this.speed *dt;
+
+		if(this.x >= 800) this.x =800;
+		if(this.x <= 0) this.x = 0;
+		if(this.y<=0)this.y=0;
+		if(this.y>=500)this.y=500;
+
 		this.player.inputSpacePrev = this.player.inputSpace;
 	}
 
