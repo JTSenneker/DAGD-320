@@ -1,4 +1,5 @@
 ﻿package as3 {	import flash.display.MovieClip;	import flash.net.Socket;	import flash.events.*;		public class ChatApp extends MovieClip {				public static var socket:Connection = new Connection();		public static var main: ChatApp;
+		public static var username:String = "";
 		
 		private var scene:Scene;
 				public function ChatApp() {

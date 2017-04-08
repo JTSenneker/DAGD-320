@@ -16,6 +16,9 @@ const ChatProtocol = {
 	buildChat: function(name,msg){
 		return this.buildPacket(["CHAT", name, msg]);
 	},
+	buildPM: function(name,target,msg){
+		return this.buildPacket(["PMSG",target,name,msg])
+	}
 };
 
 class Server{
@@ -45,15 +48,16 @@ class Server{
 			client.sock.write(msg);
 		});
 	}
-	privateBroadcast(username,msg){
-		for(var client of clients){
-			if(client.username == username){
-				client.sock.write(msg);
+	privateBroadcast(targetUsername,username,msg){
+		for(var client of this.clients){
+			if(client.username == targetUsername){
+				console.log(client.username + "recieved a message");
+				client.sock.write(ChatProtocol.buildPM(client.username,username,msg));
 			}
 		}
 	}
 	targetUser(msg){
-		for(var client of clients){
+		for(var client of this.clients){
 			if(msg.includes(client.username))return client.username;
 			else return "";
 		}
@@ -73,6 +77,16 @@ class Server{
 		if(isNameTaken)return "Name is already taken";
 		return "";
 
+	}
+
+	sendPM(msg,username){
+		this.clients.map((client)=>{
+			if(msg.includes(client.username)) {
+				let text = msg.slice(client.username.length+1).toString();
+				this.privateBroadcast(client.username,username,text);
+				console.log(text);			
+			}
+		});
 	}
 }
 
@@ -105,30 +119,39 @@ class Client{
 					this.sock.write(ChatProtocol.buildNameBad("No Name!"));
 				}else{
 					const text = parts[1];
+
+					const newString = text.replace(/\bshit\b|\bcock\b|\bfuck\b/gi,'****');
 					console.log("Chat: "+text);
-					this.server.broadcast(ChatProtocol.buildChat(this.username, text));
+					this.server.broadcast(ChatProtocol.buildChat(this.username, newString));
 				}
-					break;
-				case "NAME":
+				break;
+			case "NAME":
 					const newName = parts[1];
 					const nameResult = this.server.isNameOkay(newName);
 					if(nameResult == ""){
+
+						this.sock.write(ChatProtocol.buildNameOkay());
 						if(this.username ==""){
 							this.sock.write(ChatProtocol.buildAnnounce(newName + " joined the room!"));
 						}else{
 							this.sock.write(ChatProtocol.buildAnnounce(this.username + " changed their name to " + newName))
 						}
 						this.username = newName;
-						this.sock.write(ChatProtocol.buildNameOkay());
+
 					}else{
 						//BAD
 						this.sock.write(ChatProtocol.buildNameBad(nameResult));
 					}
-					break;
-				case "PM":
+				break;
+			case "PMSG":
+					if(this.username == ""){
+						this.sock.write(ChatProtocol.buildNameBad("No Name!"));
+					}else{
+						this.server.sendPM(parts[1],this.username);
+					}
 					console.log("PM sent");
 					
-				break;
+			break;
 			default:
 				console.log("Received an unknown packet from "+this.sock.remoteAddress);
 			

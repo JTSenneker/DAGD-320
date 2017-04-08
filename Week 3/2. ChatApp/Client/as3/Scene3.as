@@ -18,6 +18,7 @@
 			sendName();
 		}
 		function sendName(): void{
+			ChatApp.username = input1.text;
 			ChatApp.socket.writeUTFBytes("NAME\t"+input1.text+"\n");
 			ChatApp.socket.flush();
 		}
